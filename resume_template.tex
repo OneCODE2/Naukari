@@ -1,0 +1,249 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{parskip}
+\usepackage{fontspec}
+\usepackage{geometry}
+\geometry{top=.32in, bottom=.32in, left=.45in, right=.45in}
+
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[final]{microtype}
+\usepackage[unicode, draft=false]{hyperref}
+
+\definecolor{accent}{HTML}{1A56DB}
+\definecolor{dark}{HTML}{111827}
+\definecolor{mid}{HTML}{374151}
+\definecolor{light}{HTML}{6B7280}
+
+\hypersetup{
+    colorlinks=true,
+    urlcolor=accent
+}
+
+\titleformat{\section}
+    {\normalsize\bfseries\color{dark}\raggedright}
+    {}{0em}{}
+    [{\vspace{2pt}\color{accent}\titlerule[0.8pt]}]
+
+\titlespacing{\section}{0pt}{6pt}{4pt}
+
+\setmainfont{Arial}
+\renewcommand{\baselinestretch}{1.0}
+\setlength{\parskip}{1.3pt}
+\setlength{\parindent}{0pt}
+\color{mid}
+
+\setlist[itemize]{
+    leftmargin=1.15em,
+    itemsep=3pt,
+    topsep=2pt,
+    parsep=0pt,
+    partopsep=0pt,
+    label={\small\textbullet}
+}
+
+\newcommand{\rolerow}[3]{%
+    \noindent
+    {\bfseries\color{dark}#1}\enspace
+    {\bfseries\color{accent}#2}%
+    \hfill{\small\color{light}\itshape #3}%
+}
+
+\newcommand{\projrow}[3]{%
+    \noindent
+    {\bfseries\color{dark}#1}%
+    {\color{light}\enspace|\enspace\small\itshape #2}%
+    \hfill{\small\color{light}\itshape #3}%
+}
+
+\newcommand{\skillrow}[2]{%
+    \noindent
+    {\bfseries\color{dark}#1:\enspace}%
+    {\color{mid}#2}\par%
+}
+
+\begin{document}
+\pagestyle{empty}
+
+% HEADER
+
+\begin{center}
+    {\LARGE\bfseries\color{dark} Aditya Gajbhiye}
+
+    \smallskip
+
+    \small
+    \href{tel:+918698720931}{+91 8698720931}
+    \enspace|\enspace
+    \href{mailto:adityagajbhiye125@gmail.com}
+    {adityagajbhiye125@gmail.com}
+    \enspace|\enspace
+    \href{https://linkedin.com/in/aditya-gajbhiye-9b6048230}
+    {LinkedIn}
+    \enspace|\enspace
+    \href{https://github.com/OneCODE2}
+    {GitHub}
+\end{center}
+
+\vspace{2pt}
+
+% SUMMARY
+
+\section{SUMMARY}
+
+Software Engineer with 1.5+ years of experience building and maintaining
+production web applications using React, TypeScript, Java, Spring Boot,
+and Python. Experienced in developing REST APIs, integrating external
+systems, designing relational databases, and improving application
+performance. Comfortable working across the frontend and backend,
+writing automated tests, debugging issues, and delivering reliable
+software in Agile teams.
+
+% WORK EXPERIENCE
+
+\section{WORK EXPERIENCE}
+
+\rolerow{Software Development Engineer I}
+{GrowthJockey, Gurugram}{Jul 2025 -- Present}
+
+\vspace{2pt}
+
+\begin{itemize}
+
+\item Built and maintained a React 19 admin application with role based
+access control across 10+ modules, integrating 50+ REST APIs and
+reducing administrative task time by 40\%.
+
+\item Integrated ERP APIs to automate order synchronization, eliminating
+100\% of manual processing and reducing fulfillment errors by 90\%.
+
+\item Developed scheduled Java and Spring Boot jobs to collect analytics
+data and load it into PostgreSQL, automating reporting workflows and
+resolving JDBC and Hibernate schema validation issues.
+
+\item Designed PostgreSQL schemas and optimized SQL queries for
+quotation and inventory systems, using relational constraints and
+object oriented design principles to maintain data integrity.
+
+\item Worked on automated testing, code reviews, debugging, and defect
+resolution across development, testing, and production environments,
+helping resolve 70+ UAT defects.
+
+\item Deployed a RAG powered AI chatbot for SleepyHug that autonomously
+resolves 40--50\% of inbound customer support queries.
+
+\item Developed a self service blog CMS and migrated 800+ posts without
+broken routes. Improved six product pages through server side rendering
+and image optimization, contributing to 25\% higher conversions over
+90 days.
+
+\end{itemize}
+
+\vspace{3pt}
+
+\rolerow{Software Engineer Intern}{GrowthJockey}{Jan 2025 -- Jun 2025}
+
+\vspace{2pt}
+
+\begin{itemize}
+
+\item Integrated 10+ third party REST APIs with structured error handling
+and Vite code splitting, reducing unhandled production failures to zero.
+
+\item Developed and shared 15+ reusable UI components aligned with
+WCAG 2.1 accessibility guidelines, helping reduce cross team feature
+delivery time by 35\%.
+
+\item Collaborated on sprint planning, code reviews, API documentation,
+and QA and UAT activities, using Git branching and Jenkins based
+CI/CD workflows.
+
+\end{itemize}
+
+% EDUCATION
+
+\section{EDUCATION}
+
+\noindent
+{\bfseries\color{dark}National Institute of Technology, Manipur}
+\hfill{\small\itshape Jun 2025}\\
+{\bfseries Bachelor of Technology in Computer Science and Engineering}
+\hfill{\bfseries\color{dark}CGPA: 8.6/10.0}
+
+% TECHNICAL SKILLS
+
+\section{TECHNICAL SKILLS}
+
+\skillrow{Languages}{
+Java, Python, TypeScript, JavaScript, SQL
+}
+
+\skillrow{Frontend}{
+React.js, React 19, Next.js, Tailwind CSS, Server Side Rendering
+}
+
+\skillrow{Backend}{
+Spring Boot, REST APIs, Hibernate/JPA, JDBC, Node.js, Express.js
+}
+
+\skillrow{Databases}{
+PostgreSQL, MySQL, Relational Database Design, SQL Optimization
+}
+
+\skillrow{Testing}{
+JUnit, Jest, React Testing Library, Unit Testing, Integration Testing,
+Functional Testing, QA and UAT
+}
+
+\skillrow{Cloud and DevOps}{
+AWS, Docker, Jenkins, CI/CD, Linux, Git, Postman
+}
+
+\skillrow{Engineering Practices}{
+Object Oriented Programming, Design Patterns, Code Reviews,
+Debugging, Documentation, Agile/Scrum
+}
+
+% PROJECTS
+
+\section{PROJECTS}
+
+\projrow{Quotation Management System}
+{Java Spring Boot, PostgreSQL, React, TypeScript}{2025}
+
+\vspace{2pt}
+
+\begin{itemize}
+
+\item Developed a quotation management platform with a Java Spring Boot
+backend and PostgreSQL database, structuring business logic with
+Repository, Builder, Mapper, and Facade design patterns.
+
+\item Built a status driven Kanban board to track quotations from
+requested and sent to expiring, expired, or rejected states, with a
+React and TypeScript interface.
+
+\end{itemize}
+
+\vspace{3pt}
+
+\projrow{OttoTask: Ticketing and Workflow System}
+{Java Spring Boot}{2026}
+
+\vspace{2pt}
+
+\begin{itemize}
+
+\item Built a multi tenant ticketing platform used across the company,
+supporting account and ticket management, priority based workflows,
+approval gates, blocked states, and SLA tracking.
+
+\item Developed an analytics dashboard to track completion rates,
+average turnaround time, and monthly throughput, alongside a points
+and leaderboard system for team performance.
+
+\end{itemize}
+
+\end{document}
+

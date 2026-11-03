@@ -5,7 +5,13 @@ const { selectSkills } = require('./skills');
 const { updateProfileSkills } = require('./instahyre');
 
 const PROJECT_DIR = path.resolve(__dirname, '..');
-const DEFAULT_PDF = path.resolve(PROJECT_DIR, '..', '..', 'naukri_update', 'Aditya_Software_Engineer_.pdf');
+const DEFAULT_PDF = (function() {
+  const localPdf = path.resolve(PROJECT_DIR, '..', 'Aditya_Software_Engineer_.pdf');
+  const naukriPdf = path.resolve(PROJECT_DIR, '..', '..', 'naukri_update', 'Aditya_Software_Engineer_.pdf');
+  const fsSync = require('node:fs');
+  if (fsSync.existsSync(localPdf)) return localPdf;
+  return naukriPdf;
+})();
 const OUTPUT_FILE = path.join(PROJECT_DIR, 'output', 'skills.json');
 
 function buildDryRunResult(skills) {

@@ -1,0 +1,10 @@
+node_modules/
+.env
+.instahyre-chrome-profile/
+.instahyre-tailored/
+applications.csv
+apply-state-instahyre.json
+.show-windows
+resume-instahyre-skill-update/node_modules/
+resume-instahyre-skill-update/output/
+

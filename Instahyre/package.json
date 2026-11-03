@@ -1,0 +1,20 @@
+{
+  "name": "instahyre-automation",
+  "version": "1.0.0",
+  "description": "Standalone Instahyre automation: auto-apply runner and resume skill updaters",
+  "main": "runner.js",
+  "scripts": {
+    "login": "node runner.js login",
+    "dry-run": "node runner.js",
+    "apply": "node runner.js --live",
+    "update-skills": "node runner.js --update-skills",
+    "update-skills:live": "node resume-instahyre-skill-update/src/cli.js --live",
+    "test": "node --test *.test.js resume-instahyre-skill-update/test/*.test.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.61.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}
+
