@@ -1,1 +1,30 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment and secrets
+.env
+*.env
+**/.env
+
+# Logs and runtime files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Git worktrees & scratch
 .worktrees/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Screenshot references and runtime image captures
+*.png
+# Allow docs/assets if any needed, but keep agent/instruction files explicitly allowed
+!agents.md
+!AGENTS.md
