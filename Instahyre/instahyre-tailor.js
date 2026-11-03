@@ -66,9 +66,13 @@ function normalizeTailor(parsed, job) {
     ? parsed.experienceBullets.map((b) => escapeLatex(b).replace(/\\%/g, '%').replace(/%/g, '\\%'))
     : DEFAULT_BULLETS;
 
-  let skillCategories = (parsed.skillCategories && typeof parsed.skillCategories === 'object')
-    ? parsed.skillCategories
-    : DEFAULT_SKILL_CATEGORIES;
+  let skillCategories = DEFAULT_SKILL_CATEGORIES;
+  if (parsed.skillCategories && typeof parsed.skillCategories === 'object') {
+    skillCategories = {};
+    for (const [k, v] of Object.entries(parsed.skillCategories)) {
+      skillCategories[escapeLatex(k)] = escapeLatex(v);
+    }
+  }
 
   if (!headline || !summary || !skills.length) return null;
   return {

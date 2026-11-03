@@ -17,6 +17,7 @@ const { minimizeBrowserWindows, hideBrowserWindows, SHOW_FLAG } = require('./win
 const { tailorForJob } = require('./instahyre-tailor');
 const { writeResumePdf } = require('./instahyre-resume-pdf');
 const { updateInstahyreProfile } = require('./instahyre-profile');
+const { runOpportunitiesBranch } = require('./instahyre-branch');
 
 let chromium;
 try {
@@ -174,6 +175,7 @@ function buildInjection() {
   let lastActivity = Date.now();
   let searchIdx = 0;
   let pendingJob = null;
+  let lastTailoredJob = false;
   const VERIFY_PAGES = new Set();
   const injectedJobTabs = new WeakSet();
 
@@ -257,6 +259,7 @@ function buildInjection() {
               tailor, pdfPath, live: LIVE, log: (msg) => log(msg), guard: VERIFY_PAGES, jobTitle: job.title,
             });
             await page.evaluate(() => { window.__aaTailorSkip = false; window.__aaTailorDone = true; });
+            lastTailoredJob = true;
             log(LIVE ? '  Profile and resume updated — unblocking Apply' : '  DRY RUN — resume not replaced — unblocking Apply');
             lastActivity = Date.now();
           } catch (e) {
@@ -276,6 +279,34 @@ function buildInjection() {
           try { logApplication(job); } catch (e) { log('CSV write failed: ' + e.message); }
         }
         pendingJob = null;
+
+        // Tree Workflow (Option A): After successfully tailoring and applying to a job,
+        // spawn a child branch to apply directly to recommended opportunities based on the updated profile.
+        if (lastTailoredJob) {
+          lastTailoredJob = false;
+          (async () => {
+            try {
+              const remaining = TARGET - submitted;
+              if (remaining > 0) {
+                await runOpportunitiesBranch(page.context(), {
+                  live: LIVE,
+                  maxBranchApplies: Math.min(3, remaining),
+                  log: (msg) => log(msg),
+                  guard: VERIFY_PAGES,
+                  onApplied: (childJob) => {
+                    submitted++;
+                    if (LIVE) {
+                      bumpDayCount();
+                      try { logApplication(childJob); } catch (_) {}
+                    }
+                  },
+                });
+              }
+            } catch (err) {
+              log(`  Opportunities branch failed (non-fatal): ${err.message}`);
+            }
+          })();
+        }
       }
     });
 
