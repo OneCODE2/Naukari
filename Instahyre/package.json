@@ -12,6 +12,7 @@
     "test": "node --test *.test.js resume-instahyre-skill-update/test/*.test.js"
   },
   "dependencies": {
+    "pdf-parse": "^1.1.1",
     "playwright-core": "^1.61.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"

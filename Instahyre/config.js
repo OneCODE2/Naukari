@@ -60,9 +60,13 @@ const CV = {
 
 const CREDS = { email: g('GOOGLE_EMAIL') || g('EMAIL'), password: g('GOOGLE_PASSWORD') };
 const geminiKey = g('GEMINI_KEY');
+// OpenLLM / OpenAI-compatible API for job tailoring (takes priority over Gemini when set).
+const llmKey = g('LLM_KEY');
+const llmBaseUrl = g('LLM_BASE_URL', 'https://api.openllm.com/v1');
+const llmModel = g('LLM_MODEL', 'gpt-4o');
 const naukriProfileUrl = g('NAUKRI_PROFILE_URL', 'https://www.naukri.com/mnjuser/profile');
 // The PDF uploaded to the Naukri profile and attached to external application forms.
 // Relative names resolve against the repo folder; an absolute path is used as-is.
 const resumePath = path.resolve(__dirname, g('RESUME_FILE', 'Ankit Baghel.pdf'));
 
-module.exports = { CV, CREDS, geminiKey, naukriProfileUrl, resumePath };
+module.exports = { CV, CREDS, geminiKey, llmKey, llmBaseUrl, llmModel, naukriProfileUrl, resumePath };

@@ -147,7 +147,46 @@ function localTailor(CV, job) {
   }, job);
 }
 
-async function tailorForJob({ geminiKey, CV, job, model = DEFAULT_MODEL }) {
+async function tailorWithOpenLLM({ llmKey, llmBaseUrl, llmModel, CV, job }) {
+  const url = `${llmBaseUrl.replace(/\/$/, '')}/chat/completions`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${llmKey}`,
+    },
+    body: JSON.stringify({
+      model: llmModel,
+      messages: [{ role: 'user', content: buildPrompt(CV, job) }],
+      temperature: 0.7,
+      max_tokens: 8192,
+    }),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`OpenLLM HTTP ${res.status}: ${errText.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content || '';
+  const parsed = extractJsonObject(text);
+  const out = normalizeTailor(parsed, job);
+  if (!out) throw new Error('OpenLLM returned unusable tailor JSON');
+  out.source = `openllm (${llmModel})`;
+  return out;
+}
+
+async function tailorForJob({ llmKey, llmBaseUrl = 'https://api.openllm.com/v1', llmModel = 'gpt-4o', geminiKey, CV, job, model = DEFAULT_MODEL }) {
+  // 1. Try OpenLLM / OpenAI-compatible API first (takes priority when LLM_KEY is set).
+  if (llmKey) {
+    try {
+      return await tailorWithOpenLLM({ llmKey, llmBaseUrl, llmModel, CV, job });
+    } catch (e) {
+      console.log('[instahyre-tailor] OpenLLM failed:', String(e.message || e).slice(0, 120));
+      console.log('[instahyre-tailor] Falling back to Gemini...');
+    }
+  }
+
+  // 2. Try Gemini.
   if (geminiKey) {
     const candidateModels = [model, ...FALLBACK_MODELS.filter((m) => m !== model)];
     for (const activeModel of candidateModels) {
@@ -178,6 +217,8 @@ async function tailorForJob({ geminiKey, CV, job, model = DEFAULT_MODEL }) {
     }
     console.log('[instahyre-tailor] All Gemini models failed, using local CV tailor.');
   }
+
+  // 3. Local fallback.
   const out = localTailor(CV, job);
   if (!out) throw new Error('Local tailor failed');
   out.source = 'local';

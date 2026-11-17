@@ -356,96 +356,96 @@
 
   function finishJob() {
     try { localStorage.removeItem(OPEN_KEY); } catch (e) {}
-    if (window.opener) window.close();
+    log('🏁 JOB_TAB_DONE');
+    try { window.close(); } catch (e) {}
   }
 
   // View job opens a NEW TAB. This runs in that tab: read InstaMatch, and if it
   // is LOW ask the runner to rewrite skills + replace the resume before Apply.
   async function handleJobPage() {
-    const job = readJob();
-    const urlKey = location.pathname;
-    let freshSeen = [];
-    try { freshSeen = (JSON.parse(localStorage.getItem(STORE_KEY) || '{}')[SEEN_KEY]) || []; } catch (e) { freshSeen = []; }
-    if (window.__aaJobHandled || freshSeen.includes(urlKey) || state[SEEN_KEY].includes(urlKey)) {
-      log('This job was already opened — not opening it again.');
-      finishJob();
-      return;
-    }
-    window.__aaJobHandled = true;
-    state[SEEN_KEY].push(urlKey);
-    saveState();
-    log(`▶ Applying: ${job.title}${job.company ? ' @ ' + job.company : ''} | ${location.href}`);
-
-    let ready = false;
-    for (let i = 0; i < 30 && !ready; i++) {
-      ready = pageReady();
-      if (!ready) await sleep(400);
-    }
-    if (!ready) {
-      log('Job page did not finish loading — skipping without counting it.');
-      finishJob();
-      return;
-    }
-
-    const score = readScore();
-    log(`InstaMatch: ${score.rating}${score.text ? ' — ' + score.text : ''}`);
-    const sent = alreadySent();
-    const alreadyTailored = localStorage.getItem('instahyreProfileTailored') === '1';
-
-    // Low score: rewrite skills and replace the resume before Apply.
-    // If this job was already sent, still do that update once so later jobs match better.
-    if (score.rating === 'low' && (!sent || !alreadyTailored)) {
-      const id = (location.pathname.match(/\/job-(\d+)/) || [])[1] || 'job';
-      window.__aaJobBrief = {
-        title: job.title,
-        company: job.company,
-        href: location.href,
-        jd: (document.body.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 6000),
-      };
-      window.__aaTailorDone = false;
-      window.__aaTailorSkip = false;
-      log(`🎯 TAILOR_NEEDED | ${job.title} | ${id} | ${location.href}`);
-      const done = await (async () => {
-        const end = Date.now() + 180000;
-        while (Date.now() < end) {
-          if (window.__aaTailorDone) return true;
-          await sleep(500);
-        }
-        return false;
-      })();
-      if (!done || window.__aaTailorSkip) {
-        log('Profile/resume update did not finish — not applying to this low-score job.');
-        finishJob();
+    try {
+      const job = readJob();
+      const urlKey = location.pathname;
+      let freshSeen = [];
+      try { freshSeen = (JSON.parse(localStorage.getItem(STORE_KEY) || '{}')[SEEN_KEY]) || []; } catch (e) { freshSeen = []; }
+      if (window.__aaJobHandled || freshSeen.includes(urlKey) || state[SEEN_KEY].includes(urlKey)) {
+        log('This job was already opened — not opening it again.');
         return;
       }
-      localStorage.setItem('instahyreProfileTailored', '1');
-      log('Profile skills saved and resume replaced for this job.');
-    }
+      window.__aaJobHandled = true;
+      state[SEEN_KEY].push(urlKey);
+      saveState();
+      log(`▶ Applying: ${job.title}${job.company ? ' @ ' + job.company : ''} | ${location.href}`);
 
-    if (sent) {
-      log('Already applied — skipping, and it will not be opened again.');
-      finishJob();
-      return;
-    }
+      let ready = false;
+      for (let i = 0; i < 30 && !ready; i++) {
+        ready = pageReady();
+        if (!ready) await sleep(400);
+      }
+      if (!ready) {
+        log('Job page did not finish loading — skipping without counting it.');
+        return;
+      }
 
-    const apply = jobApplyButton() || findSingleApply();
-    if (!apply) {
-      const labels = [...document.querySelectorAll('button')]
-        .map((b) => (b.textContent || '').replace(/\s+/g, ' ').trim())
-        .filter((t) => /apply|sent|interest/i.test(t))
-        .slice(0, 4);
-      log('No Apply button on this job. Buttons: ' + (labels.join(' | ') || 'none'));
+      const score = readScore();
+      log(`InstaMatch: ${score.rating}${score.text ? ' — ' + score.text : ''}`);
+      const sent = alreadySent();
+
+      // Close immediately if already sent — no tailor wait, no clutter.
+      if (sent) {
+        log('Already applied — closing tab immediately.');
+        return;
+      }
+
+      const alreadyTailored = localStorage.getItem('instahyreProfileTailored') === '1';
+
+      // Low score: rewrite skills and replace the resume before Apply.
+      if (score.rating === 'low' && !alreadyTailored) {
+        const id = (location.pathname.match(/\/job-(\d+)/) || [])[1] || 'job';
+        window.__aaJobBrief = {
+          title: job.title,
+          company: job.company,
+          href: location.href,
+          jd: (document.body.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 6000),
+        };
+        window.__aaTailorDone = false;
+        window.__aaTailorSkip = false;
+        log(`🎯 TAILOR_NEEDED | ${job.title} | ${id} | ${location.href}`);
+        const done = await (async () => {
+          const end = Date.now() + 180000;
+          while (Date.now() < end) {
+            if (window.__aaTailorDone) return true;
+            await sleep(500);
+          }
+          return false;
+        })();
+        if (!done || window.__aaTailorSkip) {
+          log('Profile/resume update did not finish — not applying to this low-score job.');
+          return;
+        }
+        localStorage.setItem('instahyreProfileTailored', '1');
+        log('Profile skills saved and resume replaced for this job.');
+      }
+
+      const apply = jobApplyButton() || findSingleApply();
+      if (!apply) {
+        const labels = [...document.querySelectorAll('button')]
+          .map((b) => (b.textContent || '').replace(/\s+/g, ' ').trim())
+          .filter((t) => /apply|sent|interest/i.test(t))
+          .slice(0, 4);
+        log('No Apply button on this job. Buttons: ' + (labels.join(' | ') || 'none'));
+        return;
+      }
+      if (CONFIG.DRY_RUN) {
+        log('  🔍 DRY_RUN — would click: "Apply"');
+      } else {
+        apply.click();
+        await sleep(1200);
+        log('  ✅ applied');
+      }
+    } finally {
       finishJob();
-      return;
     }
-    if (CONFIG.DRY_RUN) {
-      log('  🔍 DRY_RUN — would click: "Apply"');
-    } else {
-      apply.click();
-      await sleep(1200);
-      log('  ✅ applied');
-    }
-    finishJob();
   }
 
   // ======================= MAIN LOOP =======================
@@ -556,7 +556,7 @@
       log(`👁 Opening job via "View job »" — ${fp.slice(0, 80)}`);
       view.scrollIntoView({ block: 'center' });
       view.click();
-      await sleep(1500);
+      await sleep(2500);
       continue;
     }
 

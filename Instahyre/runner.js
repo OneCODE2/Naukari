@@ -12,12 +12,13 @@
  */
 const path = require('path');
 const fs = require('fs');
-const { CV, geminiKey, resumePath: RESUME_PATH } = require('./config');
+const { CV, geminiKey, llmKey, llmBaseUrl, llmModel, resumePath: RESUME_PATH } = require('./config');
 const { minimizeBrowserWindows, hideBrowserWindows, SHOW_FLAG } = require('./window-utils');
 const { tailorForJob } = require('./instahyre-tailor');
 const { writeResumePdf } = require('./instahyre-resume-pdf');
 const { updateInstahyreProfile } = require('./instahyre-profile');
 const { runOpportunitiesBranch } = require('./instahyre-branch');
+const { shouldCloseJobTab, isJobPageUrl } = require('./instahyre-tab');
 
 let chromium;
 try {
@@ -108,7 +109,7 @@ function buildInjection() {
     .replace(/MAX_APPLICATIONS: \d+/, `MAX_APPLICATIONS: ${TARGET}`);
   return `(async () => {
     if (window.__aaBusy) return; window.__aaBusy = true;
-    window.__APPLY_CONFIG = ${JSON.stringify({ CV, geminiKey, seen: [...seenJobs], tailorBeforeApply: !!SITE.tailorBeforeApply, resumeName: path.basename(RESUME_PATH) })};
+    window.__APPLY_CONFIG = ${JSON.stringify({ CV, geminiKey, llmKey, llmBaseUrl, llmModel, seen: [...seenJobs], tailorBeforeApply: !!SITE.tailorBeforeApply, resumeName: path.basename(RESUME_PATH) })};
     try { await ${raw}
     } finally { window.__aaBusy = false; }
   })()`;
@@ -194,7 +195,11 @@ function buildInjection() {
       try {
         if (VERIFY_PAGES.has(page)) return;
         if (!SITE.injectOn(page.url())) return;
-        if (/\/job-\d+/.test(page.url())) await inject(page, { force: true });
+        if (isJobPageUrl(page.url())) {
+          if (injectedJobTabs.has(page)) return;
+          injectedJobTabs.add(page);
+          await inject(page, { force: true });
+        }
       } catch (_) { }
     });
 
@@ -205,12 +210,25 @@ function buildInjection() {
       const clean = text.replace(/%c\[auto-apply\]\s*\S*/, '').trim();
       log('  ' + clean.slice(0, 160));
 
+      if (shouldCloseJobTab({ url: page.url(), message: clean })) {
+        setTimeout(async () => {
+          if (!page.isClosed()) {
+            await page.close().catch(() => {});
+          }
+        }, 300);
+      }
+
       if (/Opening job via/i.test(clean)) {
         (async () => {
           const ctx = page.context();
+          for (const p of ctx.pages()) {
+            if (p !== page && isJobPageUrl(p.url()) && !VERIFY_PAGES.has(p)) {
+              await p.close().catch(() => {});
+            }
+          }
           const d = Date.now() + 15000;
           while (Date.now() < d) {
-            const jobTab = ctx.pages().find((p) => /\/job-\d+/.test(p.url()) && !injectedJobTabs.has(p));
+            const jobTab = ctx.pages().find((p) => isJobPageUrl(p.url()) && !p.isClosed() && !injectedJobTabs.has(p));
             if (jobTab) {
               injectedJobTabs.add(jobTab);
               await jobTab.waitForLoadState('domcontentloaded').catch(() => { });
@@ -247,7 +265,7 @@ function buildInjection() {
               company: (scraped && scraped.company) || '',
               jd: (scraped && scraped.jd) || '',
             };
-            const tailor = await tailorForJob({ geminiKey, CV, job });
+            const tailor = await tailorForJob({ llmKey, llmBaseUrl, llmModel, geminiKey, CV, job });
             tailor.jobJd = job.jd || '';
             log(`  tailor(${tailor.source || '?'}): ${(tailor.skills || []).slice(0, 6).join(', ')}`);
             const pdfPath = await writeResumePdf(page.context(), {
@@ -359,6 +377,9 @@ function buildInjection() {
         for (const p of pages) {
           if (VERIFY_PAGES.has(p)) continue;
           if (await isBusy(p)) anyBusy = true;
+          if (p !== mainPage && isJobPageUrl(p.url())) {
+            await p.close().catch(() => {});
+          }
         }
 
         if (!anyBusy) {
